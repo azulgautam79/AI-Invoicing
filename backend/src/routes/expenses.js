@@ -46,9 +46,20 @@ router.get(
 
         const totals = await queryOne(
             `SELECT
-                COALESCE(SUM(amount, 0) AS total,
-                COALESCE(SUM(CASE WHEN date_trunc('month', expense_date) = date_trunc('month', CURRENT_DATE) THEN amount ELSE 0 END), 0) AS this_month
-            FROM expenses WHERE user_id = $1`,
+                COALESCE(SUM(amount), 0) AS total,
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN date_trunc('month', expense_date::date) =
+                                date_trunc('month', CURRENT_DATE)
+                            THEN amount
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS this_month
+            FROM expenses
+            WHERE user_id = $1`,
             [req.user.id]
         );
 
